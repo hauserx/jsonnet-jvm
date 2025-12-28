@@ -1,8 +1,8 @@
 package jsonnetjvm;
 
+import jsonnetjvm.transpiler.JavaTranspiler;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -19,14 +19,17 @@ public class Main implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        System.out.println("Processing: " + file.getName());
-        
         var lexer = new JsonnetLexer(CharStreams.fromPath(file.toPath()));
         var tokens = new CommonTokenStream(lexer);
         var parser = new JsonnetParser(tokens);
         
-        ParseTree tree = parser.jsonnet();
-        System.out.println("Parse Tree: " + tree.toStringTree(parser));
+        var tree = parser.jsonnet();
+        
+        // Use "ExampleGenerated" as the class name
+        var transpiler = new JavaTranspiler("ExampleGenerated");
+        String javaCode = transpiler.visit(tree);
+        
+        System.out.println(javaCode);
         
         return 0;
     }
