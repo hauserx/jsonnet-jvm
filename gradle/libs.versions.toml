@@ -1,0 +1,13 @@
+[versions]
+antlr = "4.13.2"
+junit = "5.10.1"
+picocli = "4.7.5"
+
+[libraries]
+antlr-runtime = { module = "org.antlr:antlr4-runtime", version.ref = "antlr" }
+picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
+picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+
+[plugins]
+# No plugins defined here for this simple setup, applied in build.gradle.kts
