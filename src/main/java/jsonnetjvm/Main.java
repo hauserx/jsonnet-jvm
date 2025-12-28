@@ -1,5 +1,6 @@
 package jsonnetjvm;
 
+import jsonnetjvm.runtime.Val;
 import jsonnetjvm.transpiler.JavaTranspiler;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -9,7 +10,6 @@ import picocli.CommandLine.Parameters;
 
 import javax.tools.*;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 @Command(name = "jsonnet-jvm", mixinStandardHelpOptions = true, version = "1.0", description = "Jsonnet JVM Interpreter")
 public class Main implements Callable<Integer> {
@@ -80,10 +81,14 @@ public class Main implements Callable<Integer> {
 				Main.class.getClassLoader() // Parent classloader (has runtime classes)
 		)) {
 			Class<?> cls = classLoader.loadClass(className);
-			Method mainMethod = cls.getMethod("main", String[].class);
 
-			// Invoke main(String[] args)
-			mainMethod.invoke(null, (Object) new String[]{});
+			// Instantiate the class
+			@SuppressWarnings("unchecked")
+			Supplier<Val> instance = (Supplier<Val>) cls.getDeclaredConstructor().newInstance();
+
+			// Execute logic
+			Val result = instance.get();
+			System.out.println(result.toJson());
 		}
 	}
 

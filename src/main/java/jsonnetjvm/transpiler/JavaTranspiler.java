@@ -25,14 +25,31 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 	}
 
 	@Override
+
 	public String visitJsonnet(JsonnetParser.JsonnetContext ctx) {
+
 		// Visit the main expression.
+
 		String mainBody = visit(ctx.expr());
 
-		return "import jsonnetjvm.runtime.*;\n" + "import java.util.function.Supplier;\n\n" + "public class "
-				+ className + " {\n\n" + methods.toString() + "    public static void main(String[] args) {\n"
-				+ "        Val root = " + mainBody + ";\n" + "        System.out.println(root.toJson());\n" + "    }\n"
-				+ "}\n";
+		return "import jsonnetjvm.runtime.*;\n" +
+
+				"import java.util.function.Supplier;\n\n" +
+
+				"public class " + className + " implements Supplier<Val> {\n\n" +
+
+				methods.toString() +
+
+				"    @Override\n" +
+
+				"    public Val get() {\n" +
+
+				"        return " + mainBody + ";\n" +
+
+				"    }\n" +
+
+				"}\n";
+
 	}
 
 	@Override
