@@ -22,15 +22,8 @@ public class IntegrationTest {
         System.setOut(new PrintStream(outputStream));
 
         try {
-            // Run Main
-            // We can call Main.main, but that calls System.exit().
-            // Better to call Main.call() or CommandLine logic without exit.
-            // But Main logic depends on picocli injection.
-            // Simplest is to invoke via CommandLine manually.
-
             int exitCode = new picocli.CommandLine(new Main()).execute(jsonnetFile.toString());
             assertEquals(0, exitCode, "Main execution failed");
-
         } finally {
             System.setOut(originalOut);
         }

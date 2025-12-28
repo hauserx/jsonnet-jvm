@@ -50,7 +50,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
         if (bind.params() != null) {
             for (JsonnetParser.ParamContext param : bind.params().param()) {
-                if (params.length() > 0)
+                if (!params.isEmpty())
                     params.append(", ");
                 String paramName = param.id().getText();
                 String rawParamName = "_" + paramName;
@@ -115,13 +115,14 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
         StringBuilder args = new StringBuilder();
         if (ctx.args() != null) {
             for (JsonnetParser.ExprContext argExpr : ctx.args().expr()) {
-                if (args.length() > 0)
+                if (!args.isEmpty()) {
                     args.append(", ");
+                }
                 args.append(visit(argExpr));
             }
         }
 
-        if (args.length() == 0) {
+        if (args.isEmpty()) {
             args.append("null");
         }
 

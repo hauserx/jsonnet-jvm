@@ -1,6 +1,6 @@
 # jsonnet-jvm
 
-A [Jsonnet](https://jsonnet.org/) evaluator translating jsonnet code to Java Virtual Machine (JVM) instructions. This project aims to provide a fast and compliant implementation of the Jsonnet data templating language.
+An experimental [Jsonnet](https://jsonnet.org/) evaluator translating jsonnet code to Java Virtual Machine (JVM) instructions. This project aims to provide a fast and compliant implementation of the Jsonnet data templating language.
 
 ## Prerequisites
 
