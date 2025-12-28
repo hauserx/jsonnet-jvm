@@ -11,6 +11,7 @@ repositories {
 spotless {
     java {
         eclipse()
+        indentWithSpaces(4)
         target("src/*/java/**/*.java")
     }
     kotlinGradle {
