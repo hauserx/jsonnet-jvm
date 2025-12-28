@@ -21,13 +21,19 @@ This will compile the Java sources, generate the ANTLR parsers, and run the test
 You can run the CLI application directly using Gradle:
 
 ```bash
-./gradlew run --args="path/to/file.jsonnet"
+./gradlew run --args="src/test/resources/simple/example.jsonnet"
 ```
 
-Or run the built distribution (after building):
+To run the built distribution, you must first generate it:
 
 ```bash
-./build/install/jsonnet-jvm/bin/jsonnet-jvm path/to/file.jsonnet
+./gradlew installDist
+```
+
+Then execute the binary:
+
+```bash
+./build/install/jsonnet-jvm/bin/jsonnet-jvm src/test/resources/simple/example.jsonnet
 ```
 
 ## Project Structure
