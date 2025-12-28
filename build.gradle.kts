@@ -1,10 +1,22 @@
 plugins {
     application
     id("antlr")
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 repositories {
     mavenCentral()
+}
+
+spotless {
+    java {
+        eclipse()
+        target("src/*/java/**/*.java")
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+    }
 }
 
 val javaVersion = 25
@@ -20,7 +32,7 @@ dependencies {
     implementation(libs.antlr.runtime)
     implementation(libs.picocli)
     annotationProcessor(libs.picocli.codegen)
-    
+
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
