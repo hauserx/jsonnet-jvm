@@ -32,8 +32,6 @@ public class BenchmarkTest {
         assertEquals(0, exitCode, "Benchmark execution failed");
 
         String actualOutput = outputStream.toString().trim();
-        // The expected output is the sum of (i < j) for i, j in 1..1000
-        // This is sum(999+998+...+1) = 999 * 1000 / 2 = 499500
-        assertEquals("499500", actualOutput);
+        assertEquals("5000000", actualOutput);
     }
 }

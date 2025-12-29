@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import javax.tools.*;
@@ -24,8 +25,12 @@ import java.util.function.Supplier;
 @Command(name = "jsonnet-jvm", mixinStandardHelpOptions = true, version = "1.0", description = "Jsonnet JVM Interpreter")
 public class Main implements Callable<Integer> {
 
-    @Parameters(index = "0", description = "The file to execute", defaultValue = "test.jsonnet")
+    @Parameters(index = "0", description = "The file to execute")
     private File file;
+
+    @Option(names = {"-t",
+            "--transpile-only"}, description = "Transpile to Java source and save to a temporary directory.")
+    private boolean transpileOnly;
 
     @Override
     public Integer call() throws Exception {
@@ -38,9 +43,19 @@ public class Main implements Callable<Integer> {
         String className = "ExampleGenerated";
         var transpiler = new JavaTranspiler(className);
         String javaCode = transpiler.visit(tree);
-        compileAndRun(className, javaCode);
+
+        if (transpileOnly) {
+            Path outputDir = Files.createTempDirectory("jsonnet-transpiled");
+            Path outputFile = outputDir.resolve(className + ".java");
+            Files.writeString(outputFile, javaCode);
+            System.out.println("Transpiled Java source saved to: " + outputFile.toAbsolutePath());
+        } else {
+            compileAndRun(className, javaCode);
+        }
+
         return 0;
     }
+
     private void compileAndRun(String className, String sourceCode) throws Exception {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -50,17 +65,11 @@ public class Main implements Callable<Integer> {
         Path tempDir = Files.createTempDirectory("jsonnet-jit");
         tempDir.toFile().deleteOnExit();
 
-        // 1. Prepare compilation unit
         JavaFileObject fileObject = new InMemoryJavaFileObject(className, sourceCode);
-
-        // 2. Set up diagnostics and file manager
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-
-        // 3. Configure options (Classpath and Output directory)
         List<String> options = Arrays.asList("-d", tempDir.toString(), "-cp", System.getProperty("java.class.path"));
 
-        // 4. Compile
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, options, null,
                 Collections.singletonList(fileObject));
 
@@ -73,15 +82,11 @@ public class Main implements Callable<Integer> {
             throw new RuntimeException(errorMsg.toString());
         }
 
-        // 5. Load and Run
         try (URLClassLoader classLoader = new URLClassLoader(new URL[]{tempDir.toUri().toURL()},
-                Main.class.getClassLoader() // Parent classloader (has runtime classes)
-        )) {
+                Main.class.getClassLoader())) {
             Class<?> cls = classLoader.loadClass(className);
-
             @SuppressWarnings("unchecked")
             Supplier<Val> instance = (Supplier<Val>) cls.getDeclaredConstructor().newInstance();
-
             Val result = instance.get();
             System.out.println(result.toJson());
         }

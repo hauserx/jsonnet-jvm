@@ -27,4 +27,13 @@ public class Std {
         }
         return new JNumber(total);
     }
+
+    public static Val length(Val array) {
+        if (!(array instanceof JArray)) {
+            throw new IllegalArgumentException(
+                    "std.length expects an array, but got: " + array.getClass().getSimpleName());
+        }
+        JArray jArray = (JArray) array;
+        return new JNumber(jArray.getItems().size());
+    }
 }
