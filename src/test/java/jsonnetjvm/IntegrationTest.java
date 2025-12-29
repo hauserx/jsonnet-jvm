@@ -14,7 +14,7 @@ public class IntegrationTest {
     void testSimpleExample() throws Exception {
         Path resourceDir = Path.of("src/test/resources/simple");
         Path jsonnetFile = resourceDir.resolve("example.jsonnet");
-        Path expectedJsonFile = resourceDir.resolve("expect.json");
+        Path expectedJsonFile = resourceDir.resolve("example.jsonnet.golden");
 
         // Capture stdout
         PrintStream originalOut = System.out;
