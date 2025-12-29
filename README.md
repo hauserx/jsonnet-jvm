@@ -1,7 +1,7 @@
 # jsonnet-jvm
 
-An experimental [Jsonnet](https://jsonnet.org/) evaluator translating jsonnet
-code to Java Virtual Machine (JVM) instructions. 
+An experimental [Jsonnet](https://jsonnet.org/) evaluator aimed to run jsonnet
+code directly on Java Virtual Machine (JVM).
 
 This project aims to provide a fast implementation of the Jsonnet for cases for
 expensive jsonnet evaluators where cost of translation to JVM bytecode is
@@ -9,7 +9,7 @@ negligible compared to evaluation cost. It's domain are evaluations that take
 tens to hundreds of seconds.
 
 It's currently in Proof of Concept - it's able to evaluate some trivial jsonnet
-files. It also transpiles code to java instead of producing bytecode directly.
+files. It transpiles code to java instead of producing bytecode directly for now.
 
 ## Prerequisites
 
