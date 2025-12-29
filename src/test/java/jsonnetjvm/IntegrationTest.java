@@ -12,9 +12,18 @@ public class IntegrationTest {
 
     @Test
     void testSimpleExample() throws Exception {
+        runTest("example");
+    }
+
+    @Test
+    void testComprehension() throws Exception {
+        runTest("comprehension");
+    }
+
+    private void runTest(String testName) throws Exception {
         Path resourceDir = Path.of("src/test/resources/simple");
-        Path jsonnetFile = resourceDir.resolve("example.jsonnet");
-        Path expectedJsonFile = resourceDir.resolve("example.jsonnet.golden");
+        Path jsonnetFile = resourceDir.resolve(testName + ".jsonnet");
+        Path expectedJsonFile = resourceDir.resolve(testName + ".jsonnet.golden");
 
         // Capture stdout
         PrintStream originalOut = System.out;
@@ -23,7 +32,7 @@ public class IntegrationTest {
 
         try {
             int exitCode = new picocli.CommandLine(new Main()).execute(jsonnetFile.toString());
-            assertEquals(0, exitCode, "Main execution failed");
+            assertEquals(0, exitCode, "Main execution failed for " + testName);
         } finally {
             System.setOut(originalOut);
         }

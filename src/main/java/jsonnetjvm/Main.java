@@ -43,7 +43,6 @@ public class Main implements Callable<Integer> {
 
         return 0;
     }
-
     private void compileAndRun(String className, String sourceCode) throws Exception {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {

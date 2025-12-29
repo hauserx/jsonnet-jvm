@@ -17,7 +17,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
     }
 
     public String getJavaCode() {
-        return methods.toString(); // This assumes visit() has been called to populate methods
+        return methods.toString();
     }
 
     private String generateVarName() {
@@ -25,12 +25,12 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
     }
 
     @Override
-
     public String visitJsonnet(JsonnetParser.JsonnetContext ctx) {
         String mainBody = visit(ctx.expr());
 
-        return "import jsonnetjvm.runtime.*;\n" + "import java.util.function.Supplier;\n\n" + "public class "
-                + className + " implements Supplier<Val> {\n\n" + methods.toString() + "    @Override\n"
+        return "import jsonnetjvm.runtime.*;\n" + "import java.util.function.Supplier;\n"
+                + "import java.util.ArrayList;\n" + "import java.util.List;\n\n" + "public class " + className
+                + " implements Supplier<Val> {\n\n" + methods.toString() + "    @Override\n"
                 + "    public Val get() {\n" + "        return " + mainBody + ";\n" + "    }\n" + "}\n";
     }
 
@@ -50,7 +50,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
         if (bind.params() != null) {
             for (JsonnetParser.ParamContext param : bind.params().param()) {
-                if (!params.isEmpty())
+                if (params.length() > 0)
                     params.append(", ");
                 String paramName = param.id().getText();
                 String rawParamName = "_" + paramName;
@@ -88,17 +88,19 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
         JsonnetParser.ObjinsideContext inside = ctx.objinside();
 
-        for (JsonnetParser.MemberContext member : inside.member()) {
-            if (member.field() != null) {
-                JsonnetParser.FieldContext field = member.field();
-                String key = field.fieldname().getText();
-                if (key.startsWith("\"") || key.startsWith("'")) {
-                    key = key.substring(1, key.length() - 1);
-                }
+        if (inside.member() != null) {
+            for (JsonnetParser.MemberContext member : inside.member()) {
+                if (member.field() != null) {
+                    JsonnetParser.FieldContext field = member.field();
+                    String key = field.fieldname().getText();
+                    if (key.startsWith("\"") || key.startsWith("'")) {
+                        key = key.substring(1, key.length() - 1);
+                    }
 
-                String valueExpr = visit(field.expr());
-                code.append("            ").append(varName).append(".addField(\"").append(key).append("\", () -> ")
-                        .append(valueExpr).append(");\n");
+                    String valueExpr = visit(field.expr());
+                    code.append("            ").append(varName).append(".addField(\"" + key + "\", () -> ")
+                            .append(valueExpr).append(");\n");
+                }
             }
         }
 
@@ -109,20 +111,87 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
     }
 
     @Override
+    public String visitArrayComp(JsonnetParser.ArrayCompContext ctx) {
+        // '[' expr ','? 'for' id 'in' expr compspec* ']'
+
+        StringBuilder code = new StringBuilder();
+        code.append("((Supplier<Val>) () -> {\n");
+        code.append("            List<Val> results = new ArrayList<>();\n");
+
+        // Initial for loop
+        String id = ctx.id().getText();
+        String listExpr = visit(ctx.expr(1)); // 0 is result expr, 1 is list expr
+
+        code.append("            for (Val ").append(id).append(" : ((JArray)").append(listExpr)
+                .append(").getItems()) {\n");
+
+        // Nested compspecs
+        int depth = 1;
+        for (JsonnetParser.CompspecContext comp : ctx.compspec()) {
+            if (comp.FOR() != null) {
+                String innerId = comp.id().getText();
+                String innerExpr = visit(comp.expr());
+                code.append("            for (Val ").append(innerId).append(" : ((JArray)").append(innerExpr)
+                        .append(").getItems()) {\n");
+                depth++;
+            } else if (comp.IF() != null) {
+                String cond = visit(comp.expr());
+                code.append("            if (").append(cond).append(".asBoolean()) {\n");
+                depth++;
+            }
+        }
+
+        String resultExpr = visit(ctx.expr(0));
+        code.append("                results.add(").append(resultExpr).append(");\n");
+
+        // Close braces
+        for (int i = 0; i < depth; i++) {
+            code.append("            }\n");
+        }
+
+        code.append("            return new JArray(results);\n");
+        code.append("        }).get()");
+
+        return code.toString();
+    }
+
+    @Override
+    public String visitRelational(JsonnetParser.RelationalContext ctx) {
+        String left = visit(ctx.expr(0));
+        String right = visit(ctx.expr(1));
+        String op = ctx.getChild(1).getText();
+        if ("<".equals(op)) {
+            return "new JBoolean(" + left + ".asNumber() < " + right + ".asNumber())";
+        }
+        return super.visitRelational(ctx);
+    }
+
+    @Override
+    public String visitFieldAccess(JsonnetParser.FieldAccessContext ctx) {
+        String obj = visit(ctx.expr());
+        String field = ctx.id().getText();
+        if ("std".equals(obj)) {
+            return "Std." + field;
+        }
+        return super.visitFieldAccess(ctx);
+    }
+
+    @Override
     public String visitCall(JsonnetParser.CallContext ctx) {
-        String funcName = ctx.expr().getText();
+        String funcName = visit(ctx.expr()); // Recursively visit to handle std.range -> Std.range
+        // Note: visit(ctx.expr()) calls visitFieldAccess which returns "Std.range"
 
         StringBuilder args = new StringBuilder();
         if (ctx.args() != null) {
             for (JsonnetParser.ExprContext argExpr : ctx.args().expr()) {
-                if (!args.isEmpty()) {
+                if (args.length() > 0)
                     args.append(", ");
-                }
                 args.append(visit(argExpr));
             }
         }
 
-        if (args.isEmpty()) {
+        // Remove special null handling for now as Std.range expects args
+        if (args.length() == 0 && !funcName.contains("Std.")) {
             args.append("null");
         }
 
@@ -133,11 +202,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
     public String visitStringLit(JsonnetParser.StringLitContext ctx) {
         String text = ctx.getText();
         if (text.startsWith("'")) {
-            // Convert '...' to "..." and escape double quotes inside if needed
-            // Simple approach for POC: strip ' and wrap in "
             String content = text.substring(1, text.length() - 1);
-            // We need to escape " inside the content if it was unescaped (valid in single
-            // quoted jsonnet)
             content = content.replace("\"", "\\\"");
             return "new JString(\"" + content + "\")";
         }
@@ -145,8 +210,18 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
     }
 
     @Override
+    public String visitNumberLit(JsonnetParser.NumberLitContext ctx) {
+        return "new JNumber(" + ctx.getText() + ")";
+    }
+
+    @Override
     public String visitVar(JsonnetParser.VarContext ctx) {
         return ctx.getText();
+    }
+
+    @Override
+    public String visitParen(JsonnetParser.ParenContext ctx) {
+        return visit(ctx.expr());
     }
 
     @Override
