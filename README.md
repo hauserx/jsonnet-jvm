@@ -80,4 +80,4 @@ Just to validate jvm approach. Results from Apple M3 Pro.
 
 ## License
 
-[Add License Here]
+This project is licensed under the [Apache License, Version 2.0](LICENSE).
