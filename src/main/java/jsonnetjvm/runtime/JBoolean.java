@@ -8,6 +8,16 @@ public class JBoolean extends Val {
     }
 
     @Override
+    public String asString() {
+        return String.valueOf(value);
+    }
+
+    @Override
+    public double asNumber() {
+        return value ? 1.0 : 0.0;
+    }
+
+    @Override
     public boolean asBoolean() {
         return value;
     }

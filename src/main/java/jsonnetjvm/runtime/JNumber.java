@@ -8,6 +8,14 @@ public class JNumber extends Val {
     }
 
     @Override
+    public String asString() {
+        if (value == (long) value) {
+            return String.format("%d", (long) value);
+        }
+        return String.format("%s", value);
+    }
+
+    @Override
     public double asNumber() {
         return value;
     }

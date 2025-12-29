@@ -38,9 +38,7 @@ public class Main implements Callable<Integer> {
         String className = "ExampleGenerated";
         var transpiler = new JavaTranspiler(className);
         String javaCode = transpiler.visit(tree);
-
         compileAndRun(className, javaCode);
-
         return 0;
     }
     private void compileAndRun(String className, String sourceCode) throws Exception {
@@ -81,17 +79,14 @@ public class Main implements Callable<Integer> {
         )) {
             Class<?> cls = classLoader.loadClass(className);
 
-            // Instantiate the class
             @SuppressWarnings("unchecked")
             Supplier<Val> instance = (Supplier<Val>) cls.getDeclaredConstructor().newInstance();
 
-            // Execute logic
             Val result = instance.get();
             System.out.println(result.toJson());
         }
     }
 
-    // Helper class for in-memory source
     static class InMemoryJavaFileObject extends SimpleJavaFileObject {
         final String code;
 

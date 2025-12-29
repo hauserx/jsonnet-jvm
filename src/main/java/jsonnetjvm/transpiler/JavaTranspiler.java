@@ -10,6 +10,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
     private final String className;
     private final StringBuilder methods = new StringBuilder();
+    private final java.util.Set<String> generatedMethods = new java.util.HashSet<>();
     private int varCounter = 0;
 
     public JavaTranspiler(String className) {
@@ -36,14 +37,29 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
     @Override
     public String visitLocalVar(JsonnetParser.LocalVarContext ctx) {
+        StringBuilder code = new StringBuilder();
+        code.append("((Supplier<Val>) () -> {\n");
+
         for (JsonnetParser.BindContext bind : ctx.bind()) {
-            generateMethod(bind);
+            String idName = bind.id().getText();
+            if (bind.params() != null) { // Function definition: local Person(name) = { ... }
+                generateMethod(bind); // This generates a static method.
+                // The transpiler's visitVar will resolve 'Person' to 'Person()' when called.
+            } else { // Variable definition: local arr = [ ... ]
+                code.append("            final Val ").append(idName).append(" = ").append(visit(bind.expr()))
+                        .append(";\n");
+            }
         }
-        return visit(ctx.expr());
+
+        // Final expression of the local block
+        code.append("            return ").append(visit(ctx.expr())).append(";\n");
+        code.append("        }).get()");
+        return code.toString();
     }
 
     private void generateMethod(JsonnetParser.BindContext bind) {
         String methodName = bind.id().getText();
+        generatedMethods.add(methodName);
 
         StringBuilder params = new StringBuilder();
         StringBuilder bodyPreamble = new StringBuilder();
@@ -63,7 +79,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
                     String defaultExpr = visit(param.expr());
                     bodyPreamble.append(defaultExpr);
                 } else {
-                    bodyPreamble.append(rawParamName);
+                    bodyPreamble.append("JNull.INSTANCE"); // Default for missing non-defaulted is JNull
                 }
                 bodyPreamble.append(";\n");
             }
@@ -131,28 +147,37 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
             if (comp.FOR() != null) {
                 String innerId = comp.id().getText();
                 String innerExpr = visit(comp.expr());
-                code.append("            for (Val ").append(innerId).append(" : ((JArray)").append(innerExpr)
+                code.append("                for (Val ").append(innerId).append(" : ((JArray)").append(innerExpr)
                         .append(").getItems()) {\n");
                 depth++;
             } else if (comp.IF() != null) {
                 String cond = visit(comp.expr());
-                code.append("            if (").append(cond).append(".asBoolean()) {\n");
+                code.append("                if (").append(cond).append(".asBoolean()) {\n");
                 depth++;
             }
         }
 
         String resultExpr = visit(ctx.expr(0));
-        code.append("                results.add(").append(resultExpr).append(");\n");
+        code.append("                    results.add(").append(resultExpr).append(");\n");
 
         // Close braces
         for (int i = 0; i < depth; i++) {
-            code.append("            }\n");
+            code.append("                }\n");
         }
 
         code.append("            return new JArray(results);\n");
         code.append("        }).get()");
 
         return code.toString();
+    }
+
+    @Override
+    public String visitIfElse(JsonnetParser.IfElseContext ctx) {
+        String cond = visit(ctx.expr(0));
+        String thenExpr = visit(ctx.expr(1));
+        String elseExpr = (ctx.expr().size() > 2) ? visit(ctx.expr(2)) : "JNull.INSTANCE";
+
+        return "((" + cond + ").asBoolean() ? " + thenExpr + " : " + elseExpr + ")";
     }
 
     @Override
@@ -178,8 +203,7 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
     @Override
     public String visitCall(JsonnetParser.CallContext ctx) {
-        String funcName = visit(ctx.expr()); // Recursively visit to handle std.range -> Std.range
-        // Note: visit(ctx.expr()) calls visitFieldAccess which returns "Std.range"
+        String funcName = visit(ctx.expr());
 
         StringBuilder args = new StringBuilder();
         if (ctx.args() != null) {
@@ -190,7 +214,11 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
             }
         }
 
-        // Remove special null handling for now as Std.range expects args
+        // Special case for `std.sum` call which expects a single JArray argument
+        if (funcName.endsWith(".sum")) {
+            return funcName + "(" + args + ")";
+        }
+
         if (args.length() == 0 && !funcName.contains("Std.")) {
             args.append("null");
         }
@@ -216,12 +244,24 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
 
     @Override
     public String visitVar(JsonnetParser.VarContext ctx) {
-        return ctx.getText();
+        String varName = ctx.getText();
+        if (generatedMethods.contains(varName)) {
+            return varName + "()"; // It's a method call
+        }
+        return varName;
     }
 
     @Override
-    public String visitParen(JsonnetParser.ParenContext ctx) {
-        return visit(ctx.expr());
+    public String visitMultiplicative(JsonnetParser.MultiplicativeContext ctx) {
+        String left = visit(ctx.expr(0));
+        String right = visit(ctx.expr(1));
+        String op = ctx.getChild(1).getText();
+
+        if ("*".equals(op)) {
+            return "new JNumber(" + left + ".asNumber() * " + right + ".asNumber())";
+        }
+        // TODO: Other multiplicative operators
+        return super.visitMultiplicative(ctx);
     }
 
     @Override
@@ -233,6 +273,12 @@ public class JavaTranspiler extends JsonnetBaseVisitor<String> {
         if ("+".equals(op)) {
             return "new JString(" + left + ".asString() + " + right + ".asString())";
         }
+        // TODO: Other additive operators
         return super.visitAdditive(ctx);
+    }
+
+    @Override
+    public String visitParen(JsonnetParser.ParenContext ctx) {
+        return visit(ctx.expr());
     }
 }
