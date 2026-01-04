@@ -1,109 +1,56 @@
 package jsonnetjvm;
 
 import jsonnetjvm.runtime.Val;
-import jsonnetjvm.transpiler.JavaTranspiler;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
+import jsonnetjvm.truffle.JsonnetLanguage;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import javax.tools.*;
 import java.io.File;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
-@Command(name = "jsonnet-jvm", mixinStandardHelpOptions = true, version = "1.0", description = "Jsonnet JVM Interpreter")
+@Command(name = "jsonnet-jvm", mixinStandardHelpOptions = true, version = "0.1", description = "Jsonnet JVM Interpreter (Truffle-based)")
 public class Main implements Callable<Integer> {
 
     @Parameters(index = "0", description = "The file to execute")
     private File file;
 
-    @Option(names = {"-t",
-            "--transpile-only"}, description = "Transpile to Java source and save to a temporary directory.")
-    private boolean transpileOnly;
-
     @Override
     public Integer call() throws Exception {
-        var lexer = new JsonnetLexer(CharStreams.fromPath(file.toPath()));
-        var tokens = new CommonTokenStream(lexer);
-        var parser = new JsonnetParser(tokens);
+        try (Context context = Context.newBuilder(JsonnetLanguage.ID).allowAllAccess(true).build()) {
 
-        var tree = parser.jsonnet();
+            Source source = Source.newBuilder(JsonnetLanguage.ID, file).build();
+            Value result = context.eval(source);
 
-        String className = "ExampleGenerated";
-        var transpiler = new JavaTranspiler(className);
-        String javaCode = transpiler.visit(tree);
-
-        if (transpileOnly) {
-            Path outputDir = Files.createTempDirectory("jsonnet-transpiled");
-            Path outputFile = outputDir.resolve(className + ".java");
-            Files.writeString(outputFile, javaCode);
-            System.out.println("Transpiled Java source saved to: " + outputFile.toAbsolutePath());
-        } else {
-            compileAndRun(className, javaCode);
-        }
-
-        return 0;
-    }
-
-    private void compileAndRun(String className, String sourceCode) throws Exception {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        if (compiler == null) {
-            throw new IllegalStateException("Cannot find system Java compiler. Ensure you are running with a JDK.");
-        }
-
-        Path tempDir = Files.createTempDirectory("jsonnet-jit");
-        tempDir.toFile().deleteOnExit();
-
-        JavaFileObject fileObject = new InMemoryJavaFileObject(className, sourceCode);
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-        List<String> options = Arrays.asList("-d", tempDir.toString(), "-cp", System.getProperty("java.class.path"));
-
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, options, null,
-                Collections.singletonList(fileObject));
-
-        boolean success = task.call();
-        if (!success) {
-            StringBuilder errorMsg = new StringBuilder("Compilation failed:\n");
-            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-                errorMsg.append(diagnostic.getMessage(null)).append("\n");
+            // Print the result using Polyglot interop if possible, otherwise fallback
+            if (result.isNumber()) {
+                double d = result.asDouble();
+                if (d == (long) d)
+                    System.out.println((long) d);
+                else
+                    System.out.println(d);
+            } else if (result.isString()) {
+                System.out.println("\"" + result.asString() + "\"");
+            } else if (result.isBoolean()) {
+                System.out.println(result.asBoolean());
+            } else if (result.isNull()) {
+                System.out.println("null");
+            } else {
+                // For Arrays and Objects, we might need custom logic or just toString for now
+                // Ideally our Val types implement InteropLibrary correctly for all these.
+                System.out.println(result.toString());
             }
-            throw new RuntimeException(errorMsg.toString());
-        }
 
-        try (URLClassLoader classLoader = new URLClassLoader(new URL[]{tempDir.toUri().toURL()},
-                Main.class.getClassLoader())) {
-            Class<?> cls = classLoader.loadClass(className);
-            @SuppressWarnings("unchecked")
-            Supplier<Val> instance = (Supplier<Val>) cls.getDeclaredConstructor().newInstance();
-            Val result = instance.get();
-            System.out.println(result.toJson());
+        } catch (PolyglotException e) {
+            System.err.println("Error: " + e.getMessage());
+            // e.printStackTrace();
+            return 1;
         }
-    }
-
-    static class InMemoryJavaFileObject extends SimpleJavaFileObject {
-        final String code;
-
-        InMemoryJavaFileObject(String className, String code) {
-            super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
-            this.code = code;
-        }
-
-        @Override
-        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-            return code;
-        }
+        return 0;
     }
 
     public static void main(String... args) {

@@ -1,37 +1,37 @@
 package jsonnetjvm;
 
+import jsonnetjvm.truffle.JsonnetLanguage;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.Test;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.time.Duration;
+import org.junit.jupiter.api.Timeout;
+
+import java.io.File;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 public class BenchmarkTest {
 
     @Test
+    @Timeout(60)
     void testLargeComprehension() throws Exception {
-        System.out.println("Starting large comprehension benchmark...");
-        long start = System.currentTimeMillis();
+        File jsonnetFile = Path.of("src/test/resources/bench/comprehension.jsonnet").toFile();
+        System.out.println("Starting large comprehension (50M ops) with JIT...");
 
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
+        try (Context context = Context.newBuilder(JsonnetLanguage.ID).allowAllAccess(true).build()) {
 
-        int exitCode;
-        try {
-            exitCode = new picocli.CommandLine(new Main()).execute("src/test/resources/bench/comprehension.jsonnet");
-        } finally {
-            System.setOut(originalOut); // Restore original stdout
+            Source source = Source.newBuilder(JsonnetLanguage.ID, jsonnetFile).build();
+
+            for (int i = 1; i <= 5; i++) {
+                long start = System.currentTimeMillis();
+                Value result = context.eval(source);
+                long end = System.currentTimeMillis();
+
+                assertEquals(50000000.0, result.asDouble(), "Iteration " + i + " failed");
+                System.out.printf("Iteration %d finished in %d ms%n", i, end - start);
+            }
         }
-
-        long end = System.currentTimeMillis();
-        System.out.printf("Large Comprehension Benchmark finished in %d ms%n", end - start);
-
-        assertEquals(0, exitCode, "Benchmark execution failed");
-
-        String actualOutput = outputStream.toString().trim();
-        assertEquals("5000000", actualOutput);
     }
 }

@@ -1,19 +1,18 @@
 # jsonnet-jvm
 
 An experimental [Jsonnet](https://jsonnet.org/) evaluator aimed to run jsonnet
-code directly on Java Virtual Machine (JVM).
+code directly on Java Virtual Machine (JVM) using Graal Truffle.
 
-This project aims to provide a fast implementation of the Jsonnet for cases for
-expensive jsonnet evaluators where cost of translation to JVM bytecode is
-negligible compared to evaluation cost. It's domain are evaluations that take
-tens to hundreds of seconds.
+This project aims to provide a fast implementation of the Jsonnet for expensive
+jsonnet evaluators taking tens to hundreds of seconds.
 
 It's currently in Proof of Concept - it's able to evaluate some trivial jsonnet
-files. It transpiles code to java instead of producing bytecode directly for now.
+files. It needs a lot of cleanup - most of the code was vibe-coded.
 
 ## Prerequisites
 
 *   **Java 25**: This project uses Java 25 features. Ensure you have a compatible JDK installed (e.g., OpenJDK 25).
+*   **Native image**: If you want to self-contained native image for a platform, ensure [GraalVM](https://www.graalvm.org/) is installed.
 
 ## Building
 
@@ -47,27 +46,38 @@ Then execute the binary (ensure your `JAVA_HOME` or `java` in PATH points to JDK
 ./build/install/jsonnet-jvm/bin/jsonnet-jvm src/test/resources/simple/example.jsonnet
 ```
 
-### Transpiling to Java
+## Building native image
 
-To see the generated Java source code without compiling and running it, use the `--transpile-only` (or `-t`) flag. The output file will be saved to a temporary directory.
+One may also build native image - self-contained binary. Some initial tries
+show fast startup (~25ms), but slower evaluation for the simplest benchmarks.
+To build native image - it takes about a minute, also ensure you have graal JVM in PATH:
 
-```bash
-./gradlew run --args="-t src/test/resources/simple/example.jsonnet"
-# Transpiled Java source saved to: /var/folders/.../ExampleGenerated.java
+```
+./gradlew nativeCompile
+./build/native/nativeCompile/jsonnet-jvm src/test/resources/simple/example.jsonnet
 ```
 
 ## Benchmark results
 
-Results on very simple benchmark - `src/test/resources/bench/comprehension.jsonnet` file.
+Results for very simple benchmark - `src/test/resources/bench/comprehension.jsonnet` file.
 Just to validate jvm approach. Results from Apple M3 Pro.
 
 |library|result|
 |-------|------|
-|jsonnet-jvm|1.3 sec|
+|jsonnet-jvm (nativeImage)|0.6 sec|
+|jsonnet-jvm|0.7 sec|
 |sjsonnet 0.5.10|4.8 sec|
 |jrsonnet 0.4.2|11.0 sec|
 |go-jsonnet 0.21.0|34.0 sec|
 
+Results for `src/test/resources/bench/loop_multi.jsonnet`
+
+|library|result|
+|-------|------|
+|jsonnet-jvm|4.8 sec|
+|jsonnet-jvm (nativeImage)|12 sec|
+|sjsonnet 0.5.10|73 sec|
+|jrsonnet 0.4.2|225 sec|
 
 
 ## Project Structure

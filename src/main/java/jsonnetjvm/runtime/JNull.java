@@ -1,5 +1,11 @@
 package jsonnetjvm.runtime;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+
+@ExportLibrary(InteropLibrary.class)
 public class JNull extends Val {
     public static final JNull INSTANCE = new JNull();
 
@@ -7,22 +13,18 @@ public class JNull extends Val {
     }
 
     @Override
-    public String asString() {
+    @TruffleBoundary
+    public String toStringValue() {
         throw new UnsupportedOperationException("Cannot convert null to string.");
     }
 
-    @Override
-    public double asNumber() {
-        throw new UnsupportedOperationException("Cannot convert null to number.");
+    @ExportMessage
+    boolean isNull() {
+        return true;
     }
 
     @Override
-    public boolean asBoolean() {
-        // Jsonnet 'null' is falsey
-        return false;
-    }
-
-    @Override
+    @TruffleBoundary
     public String toJson() {
         return "null";
     }

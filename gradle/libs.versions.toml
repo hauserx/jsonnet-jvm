@@ -3,11 +3,21 @@ antlr = "4.13.2"
 junit = "5.10.1"
 picocli = "4.7.5"
 
+truffle = "25.0.1"
+shadow = "8.3.5"
+native-image = "0.10.3"
+
 [libraries]
 antlr-runtime = { module = "org.antlr:antlr4-runtime", version.ref = "antlr" }
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+truffle-api = { module = "org.graalvm.truffle:truffle-api", version.ref = "truffle" }
+graal-sdk = { module = "org.graalvm.sdk:graal-sdk", version.ref = "truffle" }
+truffle-runtime = { module = "org.graalvm.truffle:truffle-runtime", version.ref = "truffle" }
+truffle-compiler = { module = "org.graalvm.truffle:truffle-compiler", version.ref = "truffle" }
+truffle-dsl-processor = { module = "org.graalvm.truffle:truffle-dsl-processor", version.ref = "truffle" }
 
 [plugins]
+native-image = { id = "org.graalvm.buildtools.native", version.ref = "native-image" }
 # No plugins defined here for this simple setup, applied in build.gradle.kts
