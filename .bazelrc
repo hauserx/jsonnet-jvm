@@ -1,0 +1,9 @@
+build --java_language_version=25
+build --java_runtime_version=graalvm_25
+build --tool_java_language_version=25
+build --tool_java_runtime_version=25
+
+test --test_output=errors
+
+# Suppress spurious warnings from Truffle DSL processor
+build --javacopt=-Xlint:-processing

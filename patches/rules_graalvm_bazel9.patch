@@ -1,0 +1,36 @@
+--- a/internal/native_image/rules.bzl
++++ b/internal/native_image/rules.bzl
+@@ -1,5 +1,9 @@
+ "Rules for building native binaries using the GraalVM `native-image` tool."
+
++load(
++    "@rules_java//java:defs.bzl",
++    "JavaInfo",
++)
+ load(
+     "@build_bazel_apple_support//lib:apple_support.bzl",
+     "apple_support",
+--- a/internal/native_image/common.bzl
++++ b/internal/native_image/common.bzl
+@@ -1,5 +1,9 @@
+ "Defines common properties shared by modern and legacy Native Image rules."
+
++load(
++    "@rules_java//java:defs.bzl",
++    "JavaInfo",
++)
+ load(
+     "//internal/native_image:builder.bzl",
+     _assemble_native_build_options = "assemble_native_build_options",
+--- a/internal/native_image/classic.bzl
++++ b/internal/native_image/classic.bzl
+@@ -1,5 +1,9 @@
+ "Legacy ('classic') rules for building with GraalVM on Bazel."
+
++load(
++    "@rules_java//java:defs.bzl",
++    "JavaInfo",
++)
+ load(
+     "//internal/native_image:common.bzl",
+     _BAZEL_CPP_TOOLCHAIN_TYPE = "BAZEL_CPP_TOOLCHAIN_TYPE",

@@ -1,0 +1,87 @@
+module(
+    name = "jsonnet-jvm",
+    version = "0.1",
+)
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "sjsonnet_tests",
+    urls = ["https://github.com/databricks/sjsonnet/archive/refs/tags/0.6.0.tar.gz"],
+    sha256 = "d102758a3a75747062ca959d1a51ae8b381826be479d5bd4cb668a7fad777e66",
+    strip_prefix = "sjsonnet-0.6.0/sjsonnet/test/resources",
+    build_file_content = """\
+filegroup(
+    name = "cpp_test_suite",
+    srcs = glob(["test_suite/**"]),
+    visibility = ["//visibility:public"],
+)
+exports_files(["test_suite/arith_bool.jsonnet"])
+""",
+)
+
+http_file(
+    name = "antlr4_tool",
+    downloaded_file_path = "antlr4-complete.jar",
+    sha256 = "eae2dfa119a64327444672aff63e9ec35a20180dc5b8090b7a6ab85125df4d76",
+    urls = ["https://repo1.maven.org/maven2/org/antlr/antlr4/4.13.2/antlr4-4.13.2-complete.jar"],
+)
+
+bazel_dep(name = "rules_java", version = "9.6.1")
+bazel_dep(name = "rules_android", version = "0.7.1")
+bazel_dep(name = "rules_jvm_external", version = "6.10")
+bazel_dep(name = "contrib_rules_jvm", version = "0.32.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "rules_graalvm", version = "0.11.1")
+
+# Override to get JDK 25 support (not in 0.11.1 yet)
+# From PR: https://github.com/sgammon/rules_graalvm/pull/573
+git_override(
+    module_name = "rules_graalvm",
+    remote = "https://github.com/jesses-canva/rules_graalvm.git",
+    commit = "36629faba4bef92536c625e28530f22921a043ed",
+)
+
+gvm = use_extension("@rules_graalvm//:extensions.bzl", "graalvm")
+gvm.graalvm(
+    name = "graalvm",
+    version = "25.0.1",
+    distribution = "ce",
+    java_version = "25",
+)
+use_repo(gvm, "graalvm")
+
+register_toolchains("@graalvm//:jvm", "@graalvm//:sdk", "@graalvm//:bootstrap_runtime_toolchain")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "maven",
+    known_contributing_modules = ["bazel_worker_java", "protobuf"],
+    artifacts = [
+        "org.antlr:antlr4-runtime:4.13.2",
+        "com.fasterxml.jackson.core:jackson-core:2.18.2",
+        "com.fasterxml.jackson.core:jackson-databind:2.18.2",
+        "org.yaml:snakeyaml:2.2",
+        "info.picocli:picocli:4.7.5",
+        "info.picocli:picocli-codegen:4.7.5",
+        "com.google.re2j:re2j:1.8",
+        "org.tukaani:xz:1.10",
+        "org.graalvm.truffle:truffle-api:25.0.1",
+        "org.graalvm.truffle:truffle-dsl-processor:25.0.1",
+        "org.graalvm.sdk:graal-sdk:25.0.1",
+        "org.graalvm.polyglot:polyglot:25.0.1",
+        "org.graalvm.truffle:truffle-runtime:25.0.1",
+        "org.graalvm.truffle:truffle-compiler:25.0.1",
+        "org.junit.jupiter:junit-jupiter:5.12.2",
+        "org.junit.jupiter:junit-jupiter-api:5.12.2",
+        "org.junit.jupiter:junit-jupiter-engine:5.12.2",
+        "org.junit.jupiter:junit-jupiter-params:5.12.2",
+        "org.junit.platform:junit-platform-launcher:1.12.2",
+        "org.junit.platform:junit-platform-engine:1.12.2",
+        "org.junit.platform:junit-platform-commons:1.12.2",
+        "org.junit.platform:junit-platform-reporting:1.12.2",
+    ],
+    repositories = ["https://repo1.maven.org/maven2"],
+)
+use_repo(maven, "maven")

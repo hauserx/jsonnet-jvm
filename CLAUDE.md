@@ -2,21 +2,27 @@
 
 ## Build & Test
 
-Gradle is configured to find JDK25 automatically. No need to set JAVA_HOME.
+Bazel downloads GraalVM CE 25 automatically. No manual JDK setup needed.
 
+Run all tests:
 ```bash
-cd /home/stephen.amar/universe/experimental/stephen.amar/jsonnet-jvm
-./gradlew test
+bazel test //:all_tests
 ```
 
-Build only:
+Run a specific test:
 ```bash
-./gradlew build
+bazel test //:IntegrationTest
+bazel test //:ParserTest
 ```
 
-Native image:
+Build the binary:
 ```bash
-./gradlew nativeCompile
+bazel build //:jsonnet_jvm
+```
+
+Run the binary:
+```bash
+bazel run //:jsonnet_jvm -- <args>
 ```
 
 ## Test Structure

@@ -180,8 +180,9 @@ public class JsonnetEvaluator implements Closeable {
     /** Evaluates a Jsonnet file, returning the JSON result. */
     public String evaluateFile(Path file) {
       try {
-        Source source = Source.newBuilder(JsonnetLanguage.ID, file.toFile()).build();
-        return evaluate(source, file.getFileName().toString(), file.toAbsolutePath().getParent());
+        Path realFile = file.toAbsolutePath().toRealPath();
+        Source source = Source.newBuilder(JsonnetLanguage.ID, realFile.toFile()).build();
+        return evaluate(source, realFile.getFileName().toString(), realFile.getParent());
       } catch (IOException e) {
         throw new RuntimeException("Cannot read " + file + ": " + e.getMessage(), e);
       }
