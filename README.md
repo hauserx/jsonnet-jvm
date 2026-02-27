@@ -71,8 +71,8 @@ Results from Apple M3 Pro (with Truffle JIT):
 
 |library|result|
 |-------|------|
-|jsonnet-jvm (native image)|0.6 sec|
-|jsonnet-jvm|0.7 sec|
+| (previous POC version) jsonnet-jvm (native image)|0.6 sec|
+| (previous POC version) jsonnet-jvm|0.7 sec|
 |sjsonnet 0.5.10|4.8 sec|
 |jrsonnet 0.4.2|11.0 sec|
 |go-jsonnet 0.21.0|34.0 sec|
@@ -90,8 +90,8 @@ Results from Apple M3 Pro (with Truffle JIT):
 
 |library|result|
 |-------|------|
-|jsonnet-jvm|4.8 sec|
-|jsonnet-jvm (native image)|12 sec|
+| (previous POC version) jsonnet-jvm|4.8 sec|
+| (previous POC version) jsonnet-jvm (native image)|12 sec|
 |sjsonnet 0.5.10|73 sec|
 |jrsonnet 0.4.2|225 sec|
 
