@@ -100,6 +100,50 @@ java_binary(
 )
 
 # ---------------------------------------------------------------------------
+# Native image
+# ---------------------------------------------------------------------------
+
+# Build a deploy jar first (all deps bundled), then compile to native binary.
+# Using a genrule to invoke native-image directly avoids rules_graalvm Bazel 9
+# compatibility issues with cc_common.configure_features.
+genrule(
+    name = "jsonnet_jvm_native",
+    srcs = [
+        ":jsonnet_jvm_deploy.jar",
+        # All GraalVM SDK/Truffle jars that declare ForceOnModulePath must be
+        # provided on the module path as proper modular JARs (module-info.class).
+        # The deploy jar merges them as flat classes, losing module structure.
+        "@maven//:org_graalvm_truffle_truffle_api",
+        "@maven//:org_graalvm_truffle_truffle_compiler",
+        "@maven//:org_graalvm_truffle_truffle_runtime",
+        "@maven//:org_graalvm_sdk_graal_sdk",
+        "@maven//:org_graalvm_sdk_collections",
+        "@maven//:org_graalvm_sdk_jniutils",
+        "@maven//:org_graalvm_sdk_nativeimage",
+        "@maven//:org_graalvm_sdk_word",
+        "@maven//:org_graalvm_polyglot_polyglot",
+    ],
+    outs = ["jsonnet_jvm_native-bin"],
+    tools = ["@graalvm//:bin-native-image"],
+    cmd = """
+        MODPATH=$(location @maven//:org_graalvm_truffle_truffle_api):$(location @maven//:org_graalvm_truffle_truffle_compiler):$(location @maven//:org_graalvm_truffle_truffle_runtime):$(location @maven//:org_graalvm_sdk_graal_sdk):$(location @maven//:org_graalvm_sdk_collections):$(location @maven//:org_graalvm_sdk_jniutils):$(location @maven//:org_graalvm_sdk_nativeimage):$(location @maven//:org_graalvm_sdk_word):$(location @maven//:org_graalvm_polyglot_polyglot)
+        $(location @graalvm//:bin-native-image) \
+            --no-fallback \
+            -O3 \
+            --enable-native-access=ALL-UNNAMED \
+            -H:+ReportExceptionStackTraces \
+            -H:+AllowDeprecatedBuilderClassesOnImageClasspath \
+            --initialize-at-build-time=com.databricks.jsonnetjvm,com.google.re2j,com.fasterxml.jackson \
+            --module-path $$MODPATH \
+            -cp $(location :jsonnet_jvm_deploy.jar) \
+            --exclude-config ".*deploy.*" "META-INF/native-image/org.graalvm\\..*" \
+            -H:Name=$(RULEDIR)/jsonnet_jvm_native-bin \
+            com.databricks.jsonnetjvm.Main
+    """,
+    executable = True,
+)
+
+# ---------------------------------------------------------------------------
 # Test infrastructure
 # ---------------------------------------------------------------------------
 

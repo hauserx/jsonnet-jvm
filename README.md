@@ -46,7 +46,14 @@ bazel build //:jsonnet_jvm_deploy.jar
 java -jar bazel-bin/jsonnet_jvm_deploy.jar src/test/resources/simple/example.jsonnet
 ```
 
+### Native image
 
+Build a self-contained native binary (no JVM required at runtime):
+
+```bash
+bazel build //:jsonnet_jvm_native
+bazel-bin/jsonnet_jvm_native-bin src/test/resources/simple/example.jsonnet
+```
 
 ## Benchmark results
 
@@ -70,7 +77,12 @@ Results from Apple M3 Pro (with Truffle JIT):
 |jrsonnet 0.4.2|11.0 sec|
 |go-jsonnet 0.21.0|34.0 sec|
 
-Results from AWS Linux (GraalVM CE JIT): 1.8 sec
+Results from AWS Linux:
+
+|mode|result|
+|----|------|
+|GraalVM CE JIT|1.7 sec|
+|native image|1.4 sec|
 
 ### `loop_multi.jsonnet` — 10×(10k×10k) array comprehensions
 
@@ -83,7 +95,12 @@ Results from Apple M3 Pro (with Truffle JIT):
 |sjsonnet 0.5.10|73 sec|
 |jrsonnet 0.4.2|225 sec|
 
-Results from AWS Linux (GraalVM CE JIT): 17 sec
+Results from AWS Linux:
+
+|mode|result|
+|----|------|
+|GraalVM CE JIT|17 sec|
+|native image|27 sec|
 
 
 ## Project Structure
