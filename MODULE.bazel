@@ -7,6 +7,21 @@ http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
+    name = "go_jsonnet_tests",
+    urls = ["https://github.com/google/go-jsonnet/archive/refs/tags/v0.21.0.tar.gz"],
+    sha256 = "ee7aa004e78fb49608bcf28142a7494dc204a07cc07d323dd2cff3d97298c696",
+    strip_prefix = "go-jsonnet-0.21.0/testdata",
+    build_file_content = """\
+filegroup(
+    name = "testdata",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+exports_files(["array.jsonnet"])
+""",
+)
+
+http_archive(
     name = "sjsonnet_tests",
     urls = ["https://github.com/databricks/sjsonnet/archive/refs/tags/0.6.0.tar.gz"],
     sha256 = "d102758a3a75747062ca959d1a51ae8b381826be479d5bd4cb668a7fad777e66",

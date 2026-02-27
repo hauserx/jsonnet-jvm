@@ -143,12 +143,16 @@ java_junit5_test(
     data = [
         "@sjsonnet_tests//:cpp_test_suite",
         "@sjsonnet_tests//:test_suite/arith_bool.jsonnet",
+        "@go_jsonnet_tests//:testdata",
+        "@go_jsonnet_tests//:array.jsonnet",
     ] + glob([
         "src/test/resources/cpp_test_suite_local/**",
+        "src/test/resources/go_jsonnet_tests_local/**",
         "src/test/resources/new_test_suite/**",
     ]),
     env = {
         "CPP_TEST_SUITE_RLOC": "$(rlocationpath @sjsonnet_tests//:test_suite/arith_bool.jsonnet)",
+        "GO_JSONNET_TESTS_RLOC": "$(rlocationpath @go_jsonnet_tests//:array.jsonnet)",
     },
     jvm_flags = _TEST_JVM_FLAGS,
     test_class = "com.databricks.jsonnetjvm.IntegrationTest",
