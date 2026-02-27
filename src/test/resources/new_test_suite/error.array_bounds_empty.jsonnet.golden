@@ -1,0 +1,2 @@
+Error: array index 0 out of range, size 0
+    at [root].(error.array_bounds_empty.jsonnet:1:1)

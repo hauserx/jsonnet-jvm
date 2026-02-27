@@ -1,0 +1,2 @@
+Error: attempted to index a array with string foo
+    at [root].(error.array_index_string.jsonnet:17:1)

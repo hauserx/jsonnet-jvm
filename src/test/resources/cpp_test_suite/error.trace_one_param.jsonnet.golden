@@ -1,0 +1,2 @@
+Error: Function parameters str, rest not bound in call
+    at [std.trace]

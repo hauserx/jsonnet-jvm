@@ -1,0 +1,4 @@
+Error: foo
+    at [anonymous].(error.sort_keyF_error.jsonnet:1:36)
+    at [std.sort]
+    at [root].(error.sort_keyF_error.jsonnet:1:1)

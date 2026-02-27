@@ -1,0 +1,2 @@
+Error: Duplicate key A in evaluated object comprehension.
+    at [root].(error.duplicate_field_comprehension.jsonnet:1:1)

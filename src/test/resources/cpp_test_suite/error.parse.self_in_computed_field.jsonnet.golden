@@ -1,0 +1,1 @@
+Static error: error.parse.self_in_computed_field.jsonnet:17:15: Unexpected 'self', expected '}'

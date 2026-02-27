@@ -1,0 +1,3 @@
+[submodule "sjsonnet"]
+	path = sjsonnet
+	url = https://github.com/databricks/sjsonnet.git

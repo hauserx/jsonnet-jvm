@@ -1,0 +1,1 @@
+Static error: error.parse.array_comma.jsonnet:17:7: Unexpected '3', expected {',', ']'}

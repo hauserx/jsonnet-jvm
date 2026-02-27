@@ -1,0 +1,2 @@
+Error: Function parameter b not bound in call
+    at [anonymous].(error.function_no_default_arg.jsonnet:1:1)

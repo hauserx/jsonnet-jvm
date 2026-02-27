@@ -1,0 +1,3 @@
+Error: std.parseJson: Unrecognized token 'broken': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+    at [std.parseJson]
+    at [root].(error.parse_json.jsonnet:1:1)

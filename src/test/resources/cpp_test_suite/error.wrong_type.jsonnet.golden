@@ -1,0 +1,3 @@
+Error: Wrong parameter type: expected String, got number
+    at [std.codepoint]
+    at [root].(error.wrong_type.jsonnet:1:1)

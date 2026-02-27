@@ -1,0 +1,3 @@
+Error: filter function must return boolean, got number
+    at [std.filter]
+    at [root].(error.filter_non_boolean.jsonnet:1:1)

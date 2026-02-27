@@ -1,0 +1,3 @@
+Error: division by zero
+    at [anonymous].(error.06.jsonnet:17:13)
+    at [root].(error.06.jsonnet:19:1)

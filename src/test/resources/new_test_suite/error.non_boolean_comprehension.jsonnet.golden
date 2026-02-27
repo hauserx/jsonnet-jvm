@@ -1,0 +1,2 @@
+Error: Condition must be boolean, got string
+    at [root].(error.non_boolean_comprehension.jsonnet:1:1)

@@ -1,0 +1,2 @@
+Error: Function parameter x not bound in call
+    at [anonymous].(error.function_duplicate_param.jsonnet:1:1)

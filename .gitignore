@@ -6,3 +6,6 @@ out/
 *.ipr
 *.iws
 .DS_Store
+.metals
+.vscode
+.bazelbsp

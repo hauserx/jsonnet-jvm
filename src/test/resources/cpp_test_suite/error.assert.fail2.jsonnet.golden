@@ -1,0 +1,2 @@
+Error: Assertion failed: foo was not equal to bar
+    at [root].(error.assert.fail2.jsonnet:20:1)

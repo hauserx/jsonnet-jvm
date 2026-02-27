@@ -1,0 +1,3 @@
+Error: Cannot sort with key values that are booleans
+    at [std.sort]
+    at [root].(error.sort_keyF_booleans.jsonnet:1:1)

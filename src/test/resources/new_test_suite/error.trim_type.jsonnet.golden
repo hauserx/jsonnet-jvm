@@ -1,0 +1,3 @@
+Error: Wrong parameter type: expected String, got number
+    at [std.trim]
+    at [root].(error.trim_type.jsonnet:1:1)

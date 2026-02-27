@@ -1,0 +1,3 @@
+Error: foo
+    at [std.sort].(error.sort_error_elem.jsonnet:1:16)
+    at [root].(error.sort_error_elem.jsonnet:1:1)

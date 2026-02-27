@@ -1,0 +1,18 @@
+--ext-code
+num=1
+--ext-code
+str="hello"
+--ext-code
+bool=true
+--ext-code
+jsonArrNums=[1, 2, 3]
+--ext-code
+jsonObjBools={"hello": false}
+--ext-code
+code=local f(a, b) = {[a]: b, "y": 2}; f("x", 1)
+--ext-code
+std=std.length("hello")
+--ext-code
+stdExtVar=std.extVar("std") + 10
+--ext-code
+stdExtVarRecursive=std.extVar("stdExtVar") + 100

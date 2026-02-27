@@ -1,0 +1,3 @@
+Error: should error
+    at [std.mergePatch].(error.mergepatch_error_field.jsonnet:1:29)
+    at [root].(error.mergepatch_error_field.jsonnet:1:2)

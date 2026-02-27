@@ -82,8 +82,8 @@ Results for `src/test/resources/bench/loop_multi.jsonnet`
 
 ## Project Structure
 
-*   `src/main/antlr/jsonnetjvm`: Contains the ANTLR4 grammar files (`Jsonnet.g4`).
-*   `src/main/java/jsonnetjvm`: Contains the Java source code.
+*   `src/main/antlr/com/databricks/jsonnetjvm`: Contains the ANTLR4 grammar files (`Jsonnet.g4`).
+*   `src/main/java/com/databricks/jsonnetjvm`: Contains the Java source code.
     *   `Main.java`: The CLI entry point.
 *   `build.gradle.kts`: The Gradle build configuration.
 

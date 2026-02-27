@@ -1,0 +1,14 @@
+--tla-code
+num=1
+--tla-code
+str="hello"
+--tla-code
+bool=true
+--tla-code
+jsonArrNums=[1, 2, 3]
+--tla-code
+jsonObjBools={"hello": false}
+--tla-code
+code=local f(a, b) = {[a]: b, "y": 2}; f("x", 1)
+--tla-code
+std_val=std.length("hello")

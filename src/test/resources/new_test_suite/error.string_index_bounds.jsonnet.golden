@@ -1,0 +1,2 @@
+Error: string bounds error
+    at [root].(error.string_index_bounds.jsonnet:1:1)

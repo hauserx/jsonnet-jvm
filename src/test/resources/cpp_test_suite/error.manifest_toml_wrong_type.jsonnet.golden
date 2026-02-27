@@ -1,0 +1,3 @@
+Error: std.manifestTomlEx: expected object
+    at [std.manifestTomlEx]
+    at [root].(error.manifest_toml_wrong_type.jsonnet:17:1)

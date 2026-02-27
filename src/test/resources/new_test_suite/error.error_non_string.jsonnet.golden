@@ -1,0 +1,2 @@
+Error: {"a": "b"}
+    at [root].(error.error_non_string.jsonnet:1:1)

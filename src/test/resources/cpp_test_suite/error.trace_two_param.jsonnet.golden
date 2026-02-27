@@ -1,0 +1,2 @@
+Error: Wrong parameter type: expected String, got number
+    at [std.trace]

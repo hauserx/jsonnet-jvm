@@ -1,0 +1,2 @@
+Error: shift by negative exponent
+    at [root].(error.negative_shfit.jsonnet:1:1)

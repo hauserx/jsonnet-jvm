@@ -1,0 +1,2 @@
+Error: Field name must be a string, got number
+    at [root].(error.field_name_non_string.jsonnet:1:1)

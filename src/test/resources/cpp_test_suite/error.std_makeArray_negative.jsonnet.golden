@@ -1,0 +1,3 @@
+Error: index value is not a positive integer, got: -10
+    at [std.makeArray]
+    at [root].(error.std_makeArray_negative.jsonnet:17:1)

@@ -1,0 +1,1 @@
+std.sort([false, true])

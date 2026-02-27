@@ -1,0 +1,3 @@
+Error: std.decodeUTF8: element 0 is not a number
+    at [std.decodeUTF8]
+    at [root].(error.decodeUTF8_nan.jsonnet:1:1)

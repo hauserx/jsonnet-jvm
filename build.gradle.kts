@@ -3,7 +3,7 @@ import org.gradle.jvm.tasks.Jar
 plugins {
     application
     id("antlr")
-    id("com.diffplug.spotless") version "6.25.0"
+    id("com.diffplug.spotless") version "8.2.1"
     alias(libs.plugins.native.image)
 }
 
@@ -11,24 +11,47 @@ repositories {
     mavenCentral()
 }
 
+val javaVersion = 25
+
 graalvmNative {
+    toolchainDetection.set(true)
     binaries {
         named("main") {
-            mainClass.set("jsonnetjvm.Main")
+            mainClass.set("com.databricks.jsonnetjvm.Main")
             imageName.set("jsonnet-jvm")
             sharedLibrary.set(false)
-            buildArgs.add("-H:+UnlockExperimentalVMOptions")
-            buildArgs.add("-H:+ReportExceptionStackTraces")
-            buildArgs.add("--initialize-at-build-time=jsonnetjvm")
+            javaLauncher.set(
+                javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(javaVersion))
+                },
+            )
             buildArgs.add("--no-fallback")
+            buildArgs.add("-O3")
+            buildArgs.add("--static-nolibc")
+            buildArgs.add("-R:MaxHeapSize=2G")
+            buildArgs.add("--initialize-at-build-time")
+            buildArgs.add("-H:+ReportExceptionStackTraces")
+        }
+        named("test") {
+            javaLauncher.set(
+                javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(javaVersion))
+                },
+            )
+            buildArgs.add("--no-fallback")
+            buildArgs.add("-O3")
+            buildArgs.add("-R:MaxHeapSize=2G")
+            buildArgs.add("--initialize-at-build-time")
+            buildArgs.add("-H:+ReportExceptionStackTraces")
         }
     }
 }
 
 spotless {
     java {
-        eclipse()
-        indentWithSpaces(4)
+        removeUnusedImports()
+        googleJavaFormat("1.34.1")
+        formatAnnotations()
         target("src/*/java/**/*.java")
     }
     kotlinGradle {
@@ -36,8 +59,6 @@ spotless {
         ktlint()
     }
 }
-
-val javaVersion = 25
 
 java {
     toolchain {
@@ -48,6 +69,7 @@ java {
 dependencies {
     antlr("org.antlr:antlr4:4.13.2")
     implementation(libs.antlr.runtime)
+    implementation(libs.jackson.databind)
     implementation(libs.picocli)
     annotationProcessor(libs.picocli.codegen)
 
@@ -58,6 +80,9 @@ dependencies {
     runtimeOnly(libs.truffle.compiler)
     annotationProcessor(libs.truffle.dsl.processor)
 
+    implementation(libs.snakeyaml)
+    implementation(libs.re2j)
+    implementation(libs.xz)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.truffle.api)
     testImplementation(libs.graal.sdk)
@@ -67,7 +92,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("jsonnetjvm.Main")
+    mainClass.set("com.databricks.jsonnetjvm.Main")
     applicationDefaultJvmArgs =
         listOf(
             "-Xmx2g",
@@ -80,7 +105,7 @@ application {
 }
 
 tasks.generateGrammarSource {
-    arguments = arguments + listOf("-visitor", "-package", "jsonnetjvm")
+    arguments = arguments + listOf("-visitor", "-package", "com.databricks.jsonnetjvm")
     outputDirectory = file("build/generated/source/antlr/main")
 }
 

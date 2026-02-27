@@ -1,0 +1,2 @@
+Error: foobar
+    at [root].(error.inside_tostring_array.jsonnet:17:8)

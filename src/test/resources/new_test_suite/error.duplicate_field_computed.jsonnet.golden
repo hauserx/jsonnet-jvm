@@ -1,0 +1,2 @@
+Error: Duplicate key k in evaluated object literal.
+    at [root].(error.duplicate_field_computed.jsonnet:1:1)

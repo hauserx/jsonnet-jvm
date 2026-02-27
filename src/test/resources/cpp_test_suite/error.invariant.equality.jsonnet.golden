@@ -1,0 +1,2 @@
+Error: Assertion failed
+    at [root].(error.invariant.equality.jsonnet:17:10)

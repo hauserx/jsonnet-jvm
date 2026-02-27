@@ -1,0 +1,3 @@
+Error: filterMap filter function must return boolean, got number
+    at [std.filterMap]
+    at [root].(error.filtermap_non_boolean.jsonnet:1:1)

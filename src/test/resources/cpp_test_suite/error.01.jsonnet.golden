@@ -1,0 +1,5 @@
+Error: foo
+    at [anonymous].(error.01.jsonnet:17:29)
+    at [anonymous].(error.01.jsonnet:18:29)
+    at [anonymous].(error.01.jsonnet:19:28)
+    at [root].(error.01.jsonnet:20:1)

@@ -1,0 +1,2 @@
+Error: numeric value outside safe integer range for bitwise operation
+    at [root].(error.integer_left_shift_runtime.jsonnet:2:1)

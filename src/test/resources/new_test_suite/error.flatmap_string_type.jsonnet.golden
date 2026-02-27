@@ -1,0 +1,3 @@
+Error: flatMap func must return string, got number
+    at [std.flatMap]
+    at [root].(error.flatmap_string_type.jsonnet:1:1)
